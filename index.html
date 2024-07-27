@@ -27,13 +27,16 @@
     <script>
 let images = [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];
 const transparencyThreshold = 128;
-const numOfStreams = 3500;
+const numOfStreams = 1750;
 let imgCenter; 
 let pointImageOverlapCache = {};  
 let circleDiameter;
 let streamGroups = [];
 let desiredStreamCounts = [];
 let totalStreamsToGenerate = 0;
+// Add these global variables at the top of your script
+let BASE_WINDOW_SIZE = 1000; // Reference window size
+let windowSizeFactor = 1;
 const REF_AREA = 1920 * 1080;  // Assuming 1920x1080 as the reference resolution where numOfStreams was 900.
 const BASE_SPEED = .01;  // the basic speed when there's just one stream
 const LOG_SCALE_FACTOR = 1.5;  // scaling factor for logarithmic relationship
@@ -62,17 +65,15 @@ function getCurrentAttractMode() {
     return streamGroups[0][0].attractMode;
 }
 
+// Adjust the generateStreams function to scale the number of streams based on window size
 function generateStreams() {
-    // Compute the ratio of the current window area to the reference area
-    let areaRatio = (windowWidth * windowHeight) / REF_AREA;
-    
-    // Adjust numOfStreams based on the ratio
+    let areaRatio = (windowWidth * windowHeight) / (BASE_WINDOW_SIZE * BASE_WINDOW_SIZE);
     let adjustedNumOfStreams = Math.round(numOfStreams * areaRatio);
 
-    const percentages = [0.05, .15, .15, .05, .015, .15, .05, .1, .025, .065, .05, .035, .05, .02, .04];
+    const percentages = [0.05, .15, .015, .015, .15, .05, .015, .15, .05, .1, .015, .065, .05, .015, .05, .02, .04];
     desiredStreamCounts = [];
 
-    for (let j = 0; j < 15; j++) {
+    for (let j = 0; j < 17; j++) {
         let desiredCountForImage = Math.round(adjustedNumOfStreams * percentages[j]);
         desiredStreamCounts.push(desiredCountForImage);
     }
@@ -81,40 +82,45 @@ function generateStreams() {
 }
 
 
+
 function setup() {
-
-    for (let i = 0; i < 15; i++) {
-        streamGroups.push([]);
-    }
-
     createCanvas(windowWidth, windowHeight);
+    
+    // Calculate window size factor
+    windowSizeFactor = Math.min(windowWidth, windowHeight) / BASE_WINDOW_SIZE;
+    
+    circleDiameter = Math.min(windowWidth, windowHeight) * 0.95;
     imgCenter = createVector(width / 2, height / 2);
     background(255, 226, 95);
 
-    generateStreams();  // Generate streams based on window size
+    for (let i = 0; i < 17; i++) {
+        streamGroups.push([]);
+    }
+
+    generateStreams();
 }
 
 function windowResized() {
-    // Resize the canvas to the new window width and height
     resizeCanvas(windowWidth, windowHeight);
-    imgCenter.set(width / 2, height / 2);  // Reset the center as the window has been resized
-
-    // Recompute any parameters that depend on the window size
-    circleDiameter = Math.min(windowWidth, windowHeight);
-    let desiredImageHeight = circleDiameter * 1.6;
+    
+    // Recalculate window size factor
+    windowSizeFactor = Math.min(windowWidth, windowHeight) / BASE_WINDOW_SIZE;
+    
+    imgCenter.set(width / 2, height / 2);
+    circleDiameter = Math.min(windowWidth, windowHeight) * 0.95;
+    
+    let scaleFactor = 1.8;
+    let desiredImageHeight = circleDiameter * scaleFactor;
     
     for (let i = 0; i < images.length; i++) {
         let img = images[i];
         if (img) {
-            let scaleFactor = desiredImageHeight / img.height;
-            img.resize(img.width * scaleFactor, img.height * scaleFactor);
+            let imgScaleFactor = desiredImageHeight / img.height;
+            img.resize(img.width * imgScaleFactor, img.height * imgScaleFactor);
         }
     }
     
-    // Update center coordinates
-    imgCenter.set(width / 2, height / 2);
-    
-    generateStreams();  // Regenerate streams based on new window size
+    generateStreams();
 }
 
 function isOverAnyImageCached(point) {
@@ -300,12 +306,17 @@ get totalStreamsCount() {
 }
 
 update() {
-let lastPoint = this.points[this.points.length - 1];
-let newPoint;
+    let lastPoint = this.points[this.points.length - 1];
+        let newPoint;
 
+        // Adjust speeds based on window size
+        const FASTER_BASE_SPEED = 0.05 * windowSizeFactor;
+        const FASTER_LOG_SCALE_FACTOR = 1.5 * windowSizeFactor;
+        const FASTER_REPEL_SPEED = 20 * windowSizeFactor;
 
-        // Calculate the speed for attractMode based on total streams count using logarithmic relationship
-        let speed = this.attractMode ? BASE_SPEED + LOG_SCALE_FACTOR * Math.log(this.totalStreamsCount + 1) : 12;
+        let speed = this.attractMode 
+            ? FASTER_BASE_SPEED + FASTER_LOG_SCALE_FACTOR * Math.log(this.totalStreamsCount + 1)
+            : FASTER_REPEL_SPEED;
 
 if (this.attractMode) {
 if (this.isOutsideAllImages(lastPoint) || this.insideImage || this.isOverAssignedImage(lastPoint)) {
@@ -318,10 +329,10 @@ if (this.isOverAnyImage(lastPoint)) {
 }
 }
 
-let angleVariation = map(noise(this.noiseOffset), 0, 1, -PI, PI);
-this.currentAngle += angleVariation;
+let angleVariation = map(noise(this.noiseOffset), 0, 1, -PI, PI) * windowSizeFactor;
+        this.currentAngle += angleVariation;
 
-newPoint = p5.Vector.fromAngle(this.currentAngle).mult(speed).add(lastPoint);  // Using the speed variable here
+        newPoint = p5.Vector.fromAngle(this.currentAngle).mult(speed).add(lastPoint);
 
 // If in attractMode and inside assigned image, check if the new point is outside
 if (this.attractMode && this.insideImage && !this.isOverAssignedImage(newPoint)) {
@@ -332,16 +343,27 @@ newPoint = p5.Vector.fromAngle(this.currentAngle).mult(speed).add(lastPoint); //
 this.stayWithinBounds(newPoint);  // Check and adjust for bounds
 
 this.points.push(newPoint);
-        this.noiseOffset += 0.005;
+this.noiseOffset += 0.01 * windowSizeFactor;
 
-        if (this.points.length > 100) {
-            this.points.shift();
-        }
+if (this.points.length > 100 * windowSizeFactor) {
+    this.points.shift();
+}
 
         // Update the insideImage flag and adjust alpha
         this.insideImage = this.isOverAssignedImage(lastPoint);
         this.updateAlpha();
 }
+
+stayWithinBounds(point) {
+        const buffer = 5 * windowSizeFactor;  // Adjust buffer based on window size
+        if (point.x <= buffer || point.x >= width - buffer) {
+            this.currentAngle = PI - this.currentAngle;
+        }
+        if (point.y <= buffer || point.y >= height - buffer) {
+            this.currentAngle = -this.currentAngle;
+        }
+    }
+
 updateAlpha() {
         // Indices for leftEye.png and rightEye.png (adjust these if necessary)
         const headphoneIndex = 7;  // Assuming headphone.png is at index 7
@@ -399,7 +421,7 @@ updateAlpha() {
     display() {
         noFill();
         stroke(this.color[0], this.color[1], this.color[2], this.currentAlpha);
-        strokeWeight(.2);
+        strokeWeight(0.2 * windowSizeFactor);  // Adjust stroke weight based on window size
         beginShape();
         for (let pt of this.points) {
             vertex(pt.x, pt.y);
