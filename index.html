@@ -27,7 +27,7 @@
     <script>
 let images = [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];
 const transparencyThreshold = 128;
-const numOfStreams = 1500;
+const numOfStreams = 50;
 let imgCenter; 
 let pointImageOverlapCache = {};  
 let circleDiameter;
@@ -68,7 +68,7 @@ function getCurrentAttractMode() {
 // Adjust the generateStreams function to scale the number of streams based on window size
 function generateStreams() {
     let areaRatio = (windowWidth * windowHeight) / (BASE_WINDOW_SIZE * BASE_WINDOW_SIZE);
-    let adjustedNumOfStreams = Math.round(numOfStreams * areaRatio);
+    let adjustedNumOfStreams = Math.round(numOfStreams * areaRatio + 1250);
 
     const percentages = [0.05, .15, .015, .015, .15, .05, .015, .15, .05, .1, .015, .065, .05, .015, .05, .02, .04];
     desiredStreamCounts = [];
