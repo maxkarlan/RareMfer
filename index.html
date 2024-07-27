@@ -67,27 +67,41 @@ function getCurrentAttractMode() {
 
 // Adjust the generateStreams function to scale the number of streams based on window size
 function generateStreams() {
+    // Calculate the area ratio
     let areaRatio = (windowWidth * windowHeight) / (BASE_WINDOW_SIZE * BASE_WINDOW_SIZE);
-    let adjustedNumOfStreams = Math.round(numOfStreams * areaRatio);
+    
+    // Use square root for a more gradual reduction
+    let adjustmentFactor = Math.sqrt(areaRatio);
+    
+    // Set a minimum adjustment factor to ensure a base number of streams on small screens
+    let minAdjustmentFactor = 0.5;
+    adjustmentFactor = Math.max(adjustmentFactor, minAdjustmentFactor);
+    
+    // Calculate the adjusted number of streams
+    let adjustedNumOfStreams = Math.round(numOfStreams * adjustmentFactor);
+
+    // Ensure a minimum number of streams
+    let minStreams = Math.round(numOfStreams * 0.3); // 30% of the original number as a minimum
+    adjustedNumOfStreams = Math.max(adjustedNumOfStreams, minStreams);
 
     const percentages = [0.05, .15, .015, .015, .15, .05, .015, .15, .05, .1, .015, .065, .05, .015, .05, .02, .04];
     desiredStreamCounts = [];
 
     for (let j = 0; j < 17; j++) {
         let desiredCountForImage = Math.round(adjustedNumOfStreams * percentages[j]);
-        desiredStreamCounts.push(desiredCountForImage);
+        // Ensure at least one stream per image
+        desiredStreamCounts.push(Math.max(desiredCountForImage, 1));
     }
     
     totalStreamsToGenerate = adjustedNumOfStreams;
+
+    console.log(`Window size: ${windowWidth}x${windowHeight}, Streams: ${totalStreamsToGenerate}`);
 }
 
 
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
-    
-    // Calculate window size factor
-    windowSizeFactor = Math.min(windowWidth, windowHeight) / BASE_WINDOW_SIZE;
     
     circleDiameter = Math.min(windowWidth, windowHeight) * 0.95;
     imgCenter = createVector(width / 2, height / 2);
@@ -102,9 +116,6 @@ function setup() {
 
 function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
-    
-    // Recalculate window size factor
-    windowSizeFactor = Math.min(windowWidth, windowHeight) / BASE_WINDOW_SIZE;
     
     imgCenter.set(width / 2, height / 2);
     circleDiameter = Math.min(windowWidth, windowHeight) * 0.95;
