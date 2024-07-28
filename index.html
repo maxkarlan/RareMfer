@@ -183,10 +183,15 @@ function adjustStreams() {
 
 
 function drawTransparentSquare() {
-    fill(255, 255, 255, 220); // White color with some transparency
+    fill(255, 255, 255, 100); // White color with some transparency
     noStroke();
     rectMode(CENTER);
-    rect(width / 2, height / 2, squareSize * 0.95, squareSize * 0.95);
+    rect(width / 2, height / 2, squareSize * 0.9, squareSize * 0.9);
+    rect(width / 2, height / 2, squareSize * 0.8, squareSize * 0.8);
+    rect(width / 2, height / 2, squareSize * 0.7, squareSize * 0.7);
+    rect(width / 2, height / 2, squareSize * 0.6, squareSize * 0.6);
+    rect(width / 2, height / 2, squareSize * 0.5, squareSize * 0.5);
+    rect(width / 2, height / 2, squareSize * 0.4, squareSize * 0.4);
 }
 
 function isInsideSquare(point) {
@@ -372,7 +377,7 @@ updateAlpha() {
         //     return;
         // }
 
-        const targetAlpha = this.insideImage ? this.baseAlpha : 60; // Full opacity when over image, 20% when not
+        const targetAlpha = this.insideImage ? this.baseAlpha : 75; // Full opacity when over image, 20% when not
         const alphaChangeSpeed = 10; // Adjust this value to change how quickly alpha transitions
 
         if (this.currentAlpha < targetAlpha) {
