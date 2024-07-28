@@ -27,7 +27,7 @@
     <script>
 let images = [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];
 const transparencyThreshold = 128;
-const numOfStreams = 1000;
+const numOfStreams = 250;
 let imgCenter; 
 let pointImageOverlapCache = {};  
 let squareSize;
@@ -67,7 +67,7 @@ function getCurrentAttractMode() {
 // Adjust the generateStreams function to scale the number of streams based on window size
 function generateStreams() {
     let areaRatio = (squareSize * squareSize) / (BASE_WINDOW_SIZE * BASE_WINDOW_SIZE);
-    let adjustedNumOfStreams = Math.round(numOfStreams * areaRatio + 1500);
+    let adjustedNumOfStreams = Math.round(numOfStreams * areaRatio + 1850);
 
     const percentages = [0.05, .15, .015, .015, .15, .05, .015, .15, .05, .1, .015, .065, .05, .015, .05];
     desiredStreamCounts = [];
@@ -312,7 +312,7 @@ update() {
 
         // Adjust speeds based on window size
         const FASTER_BASE_SPEED = 0.05 * windowSizeFactor;
-        const FASTER_LOG_SCALE_FACTOR = 1.5 * windowSizeFactor;
+        const FASTER_LOG_SCALE_FACTOR = 2.5 * windowSizeFactor;
         const FASTER_REPEL_SPEED = 20 * windowSizeFactor;
 
         let speed = this.attractMode 
