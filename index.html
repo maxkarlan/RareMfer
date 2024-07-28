@@ -232,6 +232,7 @@ class Stream {
         this.insideImage = this.isOverAssignedImage(this.points[0]);
         this.baseAlpha = 255;
         this.currentAlpha = this.baseAlpha;
+        this.updateCounter = 0;
     }
     
 
@@ -345,6 +346,13 @@ this.stayWithinBounds(newPoint);  // Check and adjust for bounds
 
 this.points.push(newPoint);
 this.noiseOffset += 0.01 * windowSizeFactor;
+
+// Reduce frequency of alpha updates
+this.updateCounter++;
+if (this.updateCounter % 5 === 0) {
+    this.insideImage = this.isOverAssignedImage(this.points[this.points.length - 1]);
+    this.updateAlpha();
+}
 
 if (this.points.length > 50 * windowSizeFactor) {
     this.points.shift();
