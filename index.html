@@ -27,14 +27,13 @@
     <script>
 let images = [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];
 const transparencyThreshold = 128;
-const numOfStreams = 50;
+const numOfStreams = 1000;
 let imgCenter; 
 let pointImageOverlapCache = {};  
-let circleDiameter;
+let squareSize;
 let streamGroups = [];
 let desiredStreamCounts = [];
 let totalStreamsToGenerate = 0;
-// Add these global variables at the top of your script
 let BASE_WINDOW_SIZE = 1000; // Reference window size
 let windowSizeFactor = 1;
 const REF_AREA = 1920 * 1080;  // Assuming 1920x1080 as the reference resolution where numOfStreams was 900.
@@ -44,8 +43,8 @@ const LOG_SCALE_FACTOR = 1.5;  // scaling factor for logarithmic relationship
 
 
 function preload() {
-    circleDiameter = Math.min(windowWidth, windowHeight);
-    let desiredImageHeight = circleDiameter * 1.6;
+    squareSize = Math.min(windowWidth, windowHeight);
+    let desiredImageHeight = squareSize * 2; // Adjust this factor to change image size relative to the square
 
     images = ["images/blueHat.png", "images/body.png", "images/face.png", "images/face2.png", "images/greenHat.png", "images/head.png", "images/head2.png", "images/headphone.png", "images/lens.png", "images/propeller.png", "images/redHat.png", "images/vr.png", "images/seat.png", "images/smile.png", "images/yellowHat.png"];
     for (let i = 0; i < 15; i++) {
@@ -67,13 +66,13 @@ function getCurrentAttractMode() {
 
 // Adjust the generateStreams function to scale the number of streams based on window size
 function generateStreams() {
-    let areaRatio = (windowWidth * windowHeight) / (BASE_WINDOW_SIZE * BASE_WINDOW_SIZE);
-    let adjustedNumOfStreams = Math.round(numOfStreams * areaRatio + 1250);
+    let areaRatio = (squareSize * squareSize) / (BASE_WINDOW_SIZE * BASE_WINDOW_SIZE);
+    let adjustedNumOfStreams = Math.round(numOfStreams * areaRatio + 1500);
 
-    const percentages = [0.05, .15, .015, .015, .15, .05, .015, .15, .05, .1, .015, .065, .05, .015, .05, .02, .04];
+    const percentages = [0.05, .15, .015, .015, .15, .05, .015, .15, .05, .1, .015, .065, .05, .015, .05];
     desiredStreamCounts = [];
 
-    for (let j = 0; j < 17; j++) {
+    for (let j = 0; j < 15; j++) {
         let desiredCountForImage = Math.round(adjustedNumOfStreams * percentages[j]);
         desiredStreamCounts.push(desiredCountForImage);
     }
@@ -84,16 +83,15 @@ function generateStreams() {
 
 
 function setup() {
-    createCanvas(windowWidth, windowHeight);
+    squareSize = Math.min(windowWidth, windowHeight);
+    createCanvas(squareSize, squareSize);
     
-    // Calculate window size factor
-    windowSizeFactor = Math.min(windowWidth, windowHeight) / BASE_WINDOW_SIZE;
+    windowSizeFactor = squareSize / BASE_WINDOW_SIZE;
     
-    circleDiameter = Math.min(windowWidth, windowHeight) * 0.95;
     imgCenter = createVector(width / 2, height / 2);
     background(255, 226, 95);
 
-    for (let i = 0; i < 17; i++) {
+    for (let i = 0; i < 15; i++) {
         streamGroups.push([]);
     }
 
@@ -101,27 +99,26 @@ function setup() {
 }
 
 function windowResized() {
-    resizeCanvas(windowWidth, windowHeight);
+    squareSize = Math.min(windowWidth, windowHeight);
+    resizeCanvas(squareSize, squareSize);
     
-    // Recalculate window size factor
-    windowSizeFactor = Math.min(windowWidth, windowHeight) / BASE_WINDOW_SIZE;
+    windowSizeFactor = squareSize / BASE_WINDOW_SIZE;
     
     imgCenter.set(width / 2, height / 2);
-    circleDiameter = Math.min(windowWidth, windowHeight) * 0.95;
     
-    let scaleFactor = 1.8;
-    let desiredImageHeight = circleDiameter * scaleFactor;
+    let desiredImageHeight = squareSize * 2;
     
     for (let i = 0; i < images.length; i++) {
         let img = images[i];
         if (img) {
-            let imgScaleFactor = desiredImageHeight / img.height;
-            img.resize(img.width * imgScaleFactor, img.height * imgScaleFactor);
+            let scaleFactor = desiredImageHeight / img.height;
+            img.resize(img.width * scaleFactor, img.height * scaleFactor);
         }
     }
     
     generateStreams();
 }
+
 
 function isOverAnyImageCached(point) {
 let cacheKey = `${point.x},${point.y}`;
@@ -140,7 +137,7 @@ return result;
 function draw() {
     background(255, 226, 95);
     pointImageOverlapCache = {};  // Clear the cache for each frame
-    drawTransparentCircle();
+    drawTransparentSquare();
 
     adjustStreams();  // Adjust the number of streams
 
@@ -196,17 +193,21 @@ function adjustStreams() {
     }
 }
 
-function drawTransparentCircle() {
-// Transparent circle style
-fill(255, 0); // White color with 60% transparency
-noStroke();
-
-// Drawing the circle at the center of the canvas
-ellipse(width / 2, height / 2, circleDiameter);
+function drawTransparentSquare() {
+    fill(255, 255, 255, 220); // White color with some transparency
+    noStroke();
+    rectMode(CENTER);
+    rect(width / 2, height / 2, squareSize * 0.95, squareSize * 0.95);
 }
 
-function isInsideCircle(point) {
-    return dist(point.x, point.y, imgCenter.x, imgCenter.y) <= circleDiameter / 2;
+function isInsideSquare(point) {
+    let halfSize = squareSize * 0.95 / 2;
+    return (
+        point.x >= width / 2 - halfSize &&
+        point.x <= width / 2 + halfSize &&
+        point.y >= height / 2 - halfSize &&
+        point.y <= height / 2 + halfSize
+    );
 }
 
 function mousePressed() {
@@ -282,7 +283,7 @@ class Stream {
         let imgY = point.y - (height / 2 - img.height / 2);
         if (imgX >= 0 && imgX < img.width && imgY >= 0 && imgY < img.height) {
             let pixelColor = img.get(imgX, imgY);
-            return alpha(pixelColor) > transparencyThreshold && isInsideCircle(point);
+            return alpha(pixelColor) > transparencyThreshold && isInsideSquare(point);
         }
         return false;
     }
@@ -376,7 +377,7 @@ updateAlpha() {
         //     return;
         // }
 
-        const targetAlpha = this.insideImage ? this.baseAlpha : 50; // Full opacity when over image, 20% when not
+        const targetAlpha = this.insideImage ? this.baseAlpha : 60; // Full opacity when over image, 20% when not
         const alphaChangeSpeed = 10; // Adjust this value to change how quickly alpha transitions
 
         if (this.currentAlpha < targetAlpha) {
