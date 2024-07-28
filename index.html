@@ -69,7 +69,7 @@ function generateStreams() {
     let areaRatio = (squareSize * squareSize) / (BASE_WINDOW_SIZE * BASE_WINDOW_SIZE);
     let adjustedNumOfStreams = Math.round(numOfStreams * areaRatio + 1850);
 
-    const percentages = [0.225, .175, .125, .15, .1, .025, .1, .025, .05];
+    const percentages = [0.25, .175, .125, .125, .1, .025, .125, .025, .025];
     desiredStreamCounts = [];
 
     for (let j = 0; j < 9; j++) {
@@ -98,25 +98,29 @@ function setup() {
     generateStreams();
 }
 
+let resizeTimeout;
 function windowResized() {
-    squareSize = Math.min(windowWidth, windowHeight);
-    resizeCanvas(squareSize, squareSize);
-    
-    windowSizeFactor = squareSize / BASE_WINDOW_SIZE;
-    
-    imgCenter.set(width / 2, height / 2);
-    
-    let desiredImageHeight = squareSize * 2;
-    
-    for (let i = 0; i < images.length; i++) {
-        let img = images[i];
-        if (img) {
-            let scaleFactor = desiredImageHeight / img.height;
-            img.resize(img.width * scaleFactor, img.height * scaleFactor);
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        squareSize = Math.min(windowWidth, windowHeight);
+        resizeCanvas(squareSize, squareSize);
+        
+        windowSizeFactor = squareSize / BASE_WINDOW_SIZE;
+        
+        imgCenter.set(width / 2, height / 2);
+        
+        let desiredImageHeight = squareSize * 2;
+        
+        for (let i = 0; i < images.length; i++) {
+            let img = images[i];
+            if (img) {
+                let scaleFactor = desiredImageHeight / img.height;
+                img.resize(img.width * scaleFactor, img.height * scaleFactor);
+            }
         }
-    }
-    
-    generateStreams();
+        
+        generateStreams();
+    }, 200);
 }
 
 
@@ -156,11 +160,12 @@ function draw() {
 }
 
 
+
 // New function to adjust the number of streams
 function adjustStreams() {
     const colors = [
-        [0, 0, 0], [91, 43, 21], [191, 163, 129], [115, 83, 56], [236, 54, 115], [0, 0, 0], 
-        [0, 0, 0], [0, 0, 0], [110, 219, 255], [0, 0, 0]
+        [0, 0, 1], [91, 43, 21], [191, 163, 129], [115, 83, 56], [236, 54, 115], [0, 1, 0], 
+        [1, 0, 0], [1, 1, 0], [110, 219, 255], [0, 1, 1]
     ];
 
     for (let j = 0; j < 9; j++) {
