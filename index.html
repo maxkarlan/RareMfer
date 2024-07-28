@@ -69,7 +69,7 @@ function generateStreams() {
     let areaRatio = (squareSize * squareSize) / (BASE_WINDOW_SIZE * BASE_WINDOW_SIZE);
     let adjustedNumOfStreams = Math.round(numOfStreams * areaRatio + 1850);
 
-    const percentages = [0.175, .15, .15, .175, .1, .025, .1, .025, .075];
+    const percentages = [0.225, .175, .125, .15, .1, .025, .1, .025, .05];
     desiredStreamCounts = [];
 
     for (let j = 0; j < 9; j++) {
