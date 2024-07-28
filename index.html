@@ -346,7 +346,7 @@ this.stayWithinBounds(newPoint);  // Check and adjust for bounds
 this.points.push(newPoint);
 this.noiseOffset += 0.01 * windowSizeFactor;
 
-if (this.points.length > 100 * windowSizeFactor) {
+if (this.points.length > 75 * windowSizeFactor) {
     this.points.shift();
 }
 
